@@ -9,4 +9,5 @@ setup(
     entry_points={
         "saleor.plugins": ["openid_auth = openid_auth.plugin:OpenIDAuthPlugin"]
     },
+    install_requires=["Authlib"],
 )
