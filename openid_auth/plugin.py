@@ -3,12 +3,10 @@ from typing import Optional
 from authlib.integrations.requests_client import OAuth2Session
 from django.core.handlers.wsgi import WSGIRequest
 from saleor.account.models import User
-from saleor.core.jwt import (
-    JWT_REFRESH_TOKEN_COOKIE_NAME,
+from saleor.core.auth import (
     get_token_from_request,
-    get_user_from_access_token,
-    jwt_decode,
 )
+from saleor.core.jwt import get_user_from_access_token
 from saleor.plugins.base_plugin import BasePlugin, ConfigurationTypeField
 
 from .dataclasses import OpenIDAuthConfig
