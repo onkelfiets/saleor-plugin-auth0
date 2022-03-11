@@ -61,8 +61,8 @@ class OpenIDAuthPlugin(BasePlugin):
 
     def _get_oauth_session(self):
         scope = "openid profile email"
-        if self.config.enable_refresh_token:
-            scope += " offline_access"
+        # if self.config.enable_refresh_token:
+        #     scope += " offline_access"
         return OAuth2Session(
             client_id=self.config.client_id,
             client_secret=self.config.client_secret,
