@@ -1,6 +1,6 @@
 from typing import Optional
 
-from authlib.integrations.requests_client import OAuth2Session
+# from authlib.integrations.requests_client import OAuth2Session
 from django.core.handlers.wsgi import WSGIRequest
 from saleor.account.models import User
 from saleor.core.auth import get_token_from_request
@@ -66,17 +66,17 @@ class OpenIDAuthPlugin(BasePlugin):
             client_secret=configuration["client_secret"],
             json_web_key_set_url=configuration["json_web_key_set_url"],
         )
-        self.oauth = self._get_oauth_session()
+        # self.oauth = self._get_oauth_session()
 
-    def _get_oauth_session(self):
-        scope = "openid profile email"
-        # if self.config.enable_refresh_token:
-        #     scope += " offline_access"
-        return OAuth2Session(
-            client_id=self.config.client_id,
-            client_secret=self.config.client_secret,
-            scope=scope,
-        )
+    # def _get_oauth_session(self):
+    #     scope = "openid profile email"
+    #     # if self.config.enable_refresh_token:
+    #     #     scope += " offline_access"
+    #     return OAuth2Session(
+    #         client_id=self.config.client_id,
+    #         client_secret=self.config.client_secret,
+    #         scope=scope,
+    #     )
 
     def get_token_auth_header(request: WSGIRequest) -> Optional[str]:
         """Obtains the Access Token from the Authorization Header"""
