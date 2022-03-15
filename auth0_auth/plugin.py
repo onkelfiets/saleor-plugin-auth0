@@ -14,7 +14,7 @@ from jwt import PyJWKClient
 from .dataclasses import OpenIDAuthConfig
 
 
-class OpenIDAuthPlugin(BasePlugin):
+class Auth0AuthPlugin(BasePlugin):
     PLUGIN_ID = "toastedtoast.authentication.openidauth"
     PLUGIN_NAME = "OpenID Auth"
 
