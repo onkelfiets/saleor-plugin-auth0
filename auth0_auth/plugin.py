@@ -11,7 +11,7 @@ import jwt  # PyJWT
 from jwt import PyJWKClient
 
 
-from .dataclasses import OpenIDAuthConfig
+from .dataclasses import Auth0AuthConfig
 
 
 class Auth0AuthPlugin(BasePlugin):
@@ -60,7 +60,7 @@ class Auth0AuthPlugin(BasePlugin):
         super().__init__(*args, **kwargs)
         # Convert to dict to easier take config elements
         configuration = {item["name"]: item["value"] for item in self.configuration}
-        self.config = OpenIDAuthConfig(
+        self.config = Auth0AuthConfig(
             domain=configuration["domain"],
             client_id=configuration["client_id"],
             client_secret=configuration["client_secret"],
