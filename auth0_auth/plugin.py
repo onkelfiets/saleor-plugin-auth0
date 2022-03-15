@@ -88,7 +88,7 @@ class Auth0AuthPlugin(BasePlugin):
         if not token:
             return previous_value
 
-        jwks_client = PyJWKClient(self.json_web_key_set_url)
+        jwks_client = PyJWKClient(self.config.json_web_key_set_url)
         signing_key = jwks_client.get_signing_key_from_jwt(token)
 
         print(signing_key)
