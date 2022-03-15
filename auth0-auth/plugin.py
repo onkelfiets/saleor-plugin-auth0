@@ -3,11 +3,13 @@ from typing import Optional
 from authlib.integrations.requests_client import OAuth2Session
 from django.core.handlers.wsgi import WSGIRequest
 from saleor.account.models import User
-from saleor.core.auth import (
-    get_token_from_request,
-)
-from saleor.core.jwt import get_user_from_access_token
+from saleor.core.auth import get_token_from_request
+from saleor.core.jwt import get_user_from_access_payload, jwt_decode
 from saleor.plugins.base_plugin import BasePlugin, ConfigurationTypeField
+
+import jwt  # PyJWT
+from jwt import PyJWKClient
+
 
 from .dataclasses import OpenIDAuthConfig
 
@@ -17,12 +19,18 @@ class OpenIDAuthPlugin(BasePlugin):
     PLUGIN_NAME = "OpenID Auth"
 
     DEFAULT_CONFIGURATION = [
+        {"name": "domain", "value": None},
         {"name": "client_id", "value": None},
         {"name": "client_secret", "value": None},
         {"name": "json_web_key_set_url", "value": None},
     ]
 
     CONFIG_STRUCTURE = {
+        "domain": {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": ("Your Domain required to authenticate on the provider side."),
+            "label": "Domain",
+        },
         "client_id": {
             "type": ConfigurationTypeField.STRING,
             "help_text": (
@@ -53,6 +61,7 @@ class OpenIDAuthPlugin(BasePlugin):
         # Convert to dict to easier take config elements
         configuration = {item["name"]: item["value"] for item in self.configuration}
         self.config = OpenIDAuthConfig(
+            domain=configuration["domain"],
             client_id=configuration["client_id"],
             client_secret=configuration["client_secret"],
             json_web_key_set_url=configuration["json_web_key_set_url"],
@@ -69,12 +78,51 @@ class OpenIDAuthPlugin(BasePlugin):
             scope=scope,
         )
 
+    def get_token_auth_header(request: WSGIRequest) -> Optional[str]:
+        """Obtains the Access Token from the Authorization Header"""
+        auth_header = request.headers.get("Authorization", None)
+        if not auth_header:
+            print("No valid Authorization header found")
+            return None
+
+        header_parts = auth_header.split()
+
+        if header_parts[0].lower() != "bearer":
+            print("Authorization header must start with Bearer")
+            return None
+
+        elif len(header_parts) == 1:
+            print("Token not found")
+            return None
+
+        elif len(header_parts) > 2:
+            print("Token invalid")
+            return None
+
+        token = header_parts[1]
+        return token
+
     def authenticate_user(self, request: WSGIRequest, previous_value) -> Optional[User]:
         if not self.active:
             return previous_value
-        # TODO this will be covered by tests and modified after we add Auth backend for
-        #  plugins
-        token = get_token_from_request(request)
+
+        print(request)
+        token = self.get_token_auth_header(request)
         if not token:
-            return None
-        return get_user_from_access_token(token)
+            return previous_value
+
+        jwks_client = PyJWKClient(self.json_web_key_set_url)
+        signing_key = jwks_client.get_signing_key_from_jwt(token)
+
+        print(signing_key)
+        data = jwt.decode(
+            token,
+            signing_key.key,
+            algorithms=["RS256"],
+            audience="https://core.unverpackt-riedberg.de",
+        )
+
+        print(data)
+        return previous_value
+
+        return get_user_from_access_payload(payload)
