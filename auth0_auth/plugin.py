@@ -86,18 +86,26 @@ class Auth0AuthPlugin(BasePlugin):
         print(request)
         token = get_token_auth_header(request)
         if not token:
+            raise Exception(f"No token found: {request}")
             return previous_value
 
         jwks_client = PyJWKClient(self.config.json_web_key_set_url)
         signing_key = jwks_client.get_signing_key_from_jwt(token)
 
-        print(signing_key)
+        if not signing_key:
+            raise Exception(f"No signing key found: {token}")
+            return previous_value
+
         data = jwt.decode(
             token,
             signing_key.key,
             algorithms=["RS256"],
             audience="https://core.unverpackt-riedberg.de",
         )
+
+        if not data:
+            raise Exception(f"Decode data failed: {token}")
+            return previous_value
 
         print(data)
         return previous_value
