@@ -148,7 +148,7 @@ class Auth0AuthPlugin(BasePlugin):
         # Add sub to user when created
         if created:
             sub = data["sub"]
-            user.store_value_in_metadata({sub: sub})
+            user.store_value_in_metadata({"sub": sub})
 
         print(user)
         return user
