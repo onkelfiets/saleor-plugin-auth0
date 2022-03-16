@@ -96,6 +96,7 @@ class Auth0AuthPlugin(BasePlugin):
 
             jwks_client = PyJWKClient(self.config.json_web_key_set_url)
             signing_key = jwks_client.get_signing_key_from_jwt(token)
+
         except Exception as e:
             print(e)
             raise Exception(f"Token: {token} --- {e}")
@@ -112,9 +113,12 @@ class Auth0AuthPlugin(BasePlugin):
             audience=self.config.audience,
         )
 
-        if not data:
-            raise Exception(f"Decode data failed: {token}")
+        if data:
+            raise Exception(f"Decode data: {data}")
             return previous_value
+
+        # TODO: Pick email address.
+        # TODO: get or create user.
 
         print(data)
         return previous_value
