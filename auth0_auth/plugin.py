@@ -149,6 +149,7 @@ class Auth0AuthPlugin(BasePlugin):
         if created:
             sub = data["sub"]
             user.store_value_in_metadata({"sub": sub})
+            user.save()
 
         print(user)
         return user
