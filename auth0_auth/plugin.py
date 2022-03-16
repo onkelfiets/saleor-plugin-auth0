@@ -85,8 +85,8 @@ class Auth0AuthPlugin(BasePlugin):
 
         print(request)
         token = get_token_auth_header(request)
-        if not token:
-            raise Exception(f"No token found: {request}")
+        if token:
+            raise Exception(f"Token found: {token}")
             return previous_value
 
         jwks_client = PyJWKClient(self.config.json_web_key_set_url)
