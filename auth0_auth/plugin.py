@@ -85,15 +85,15 @@ class Auth0AuthPlugin(BasePlugin):
 
         print(request)
         token = get_token_auth_header(request)
-        if token:
-            raise Exception(f"Token found: {token}")
+        if not token:
+            raise Exception(f"No token found: {request}")
             return previous_value
 
         jwks_client = PyJWKClient(self.config.json_web_key_set_url)
         signing_key = jwks_client.get_signing_key_from_jwt(token)
 
-        if not signing_key:
-            raise Exception(f"No signing key found: {token}")
+        if signing_key:
+            raise Exception(f"No signing key found: {signing_key}")
             return previous_value
 
         data = jwt.decode(
