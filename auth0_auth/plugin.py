@@ -90,7 +90,6 @@ class Auth0AuthPlugin(BasePlugin):
         token = get_token_auth_header(request)
         if not token:
             raise Exception(f"No token found: {request}")
-            return previous_value
 
         try:
 
@@ -100,11 +99,9 @@ class Auth0AuthPlugin(BasePlugin):
         except Exception as e:
             print(e)
             raise Exception(f"Token: {token} --- {e}")
-            return previous_value
 
         if not signing_key:
             raise Exception(f"No signing key found: {token}")
-            return previous_value
 
         data = jwt.decode(
             token,
@@ -113,14 +110,19 @@ class Auth0AuthPlugin(BasePlugin):
             audience=self.config.audience,
         )
 
-        if data:
-            raise Exception(f"Decode data: {data}")
-            return previous_value
+        if not data:
+            raise Exception(f"Cannot Decode data: {data}")
 
-        # TODO: Pick email address.
-        # TODO: get or create user.
+        # Pick email address.
+        user_mail = data[f"{self.config.namespace}/email"]
+        if not user_mail:
+            raise Exception(f"No email found: {data}")
 
-        print(data)
-        return previous_value
+        # get or create user.
+        user, created = User.objects.get_or_create(
+            email=user_mail,
+            defaults={"is_active": True, "is_staff": False, "is_superuser": False},
+        )
 
-        return get_user_from_access_payload(payload)
+        print(user)
+        return user
