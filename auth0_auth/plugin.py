@@ -113,10 +113,23 @@ class Auth0AuthPlugin(BasePlugin):
         if not data:
             raise Exception(f"Cannot Decode data: {data}")
 
-        # Pick email address.
-        user_mail = data[f"{self.config.namespace}/email"]
-        first_name = data[f"{self.config.namespace}/firstname"]
-        last_name = data[f"{self.config.namespace}/lastname"]
+        # Pick user details.
+        user_mail = (
+            data[f"{self.config.namespace}/email"]
+            if f"{self.config.namespace}/email" in data.keys()
+            else None
+        )
+        first_name = (
+            data[f"{self.config.namespace}/firstname"]
+            if f"{self.config.namespace}/firstname" in data.keys()
+            else None
+        )
+        last_name = (
+            data[f"{self.config.namespace}/lastname"]
+            if f"{self.config.namespace}/lastname" in data.keys()
+            else None
+        )
+
         if not user_mail:
             raise Exception(f"No email found: {data}")
 
