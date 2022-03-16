@@ -23,6 +23,8 @@ class Auth0AuthPlugin(BasePlugin):
         {"name": "domain", "value": None},
         {"name": "client_id", "value": None},
         {"name": "client_secret", "value": None},
+        {"name": "audience", "value": None},
+        {"name": "namespace", "value": None},
         {"name": "json_web_key_set_url", "value": None},
     ]
 
@@ -46,6 +48,16 @@ class Auth0AuthPlugin(BasePlugin):
             ),
             "label": "Client Secret",
         },
+        "audience": {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": ("The audience of the api."),
+            "label": "Audience",
+        },
+        "namespace": {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": ("The namespace for custom token claims."),
+            "label": "Namespace",
+        },
         "json_web_key_set_url": {
             "type": ConfigurationTypeField.STRING,
             "help_text": (
@@ -65,19 +77,10 @@ class Auth0AuthPlugin(BasePlugin):
             domain=configuration["domain"],
             client_id=configuration["client_id"],
             client_secret=configuration["client_secret"],
+            audience=configuration["audience"],
+            namespace=configuration["namespace"],
             json_web_key_set_url=configuration["json_web_key_set_url"],
         )
-        # self.oauth = self._get_oauth_session()
-
-    # def _get_oauth_session(self):
-    #     scope = "openid profile email"
-    #     # if self.config.enable_refresh_token:
-    #     #     scope += " offline_access"
-    #     return OAuth2Session(
-    #         client_id=self.config.client_id,
-    #         client_secret=self.config.client_secret,
-    #         scope=scope,
-    #     )
 
     def authenticate_user(self, request: WSGIRequest, previous_value) -> Optional[User]:
         if not self.active:
@@ -106,7 +109,7 @@ class Auth0AuthPlugin(BasePlugin):
             token,
             signing_key.key,
             algorithms=["RS256"],
-            audience="https://core.unverpackt-riedberg.de",
+            audience=self.config.audience,
         )
 
         if not data:
