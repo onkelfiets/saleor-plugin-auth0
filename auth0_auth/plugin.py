@@ -115,14 +115,27 @@ class Auth0AuthPlugin(BasePlugin):
 
         # Pick email address.
         user_mail = data[f"{self.config.namespace}/email"]
+        first_name = data[f"{self.config.namespace}/firstname"]
+        last_name = data[f"{self.config.namespace}/lastname"]
+        sub = data["sub"]
         if not user_mail:
             raise Exception(f"No email found: {data}")
 
         # get or create user.
         user, created = User.objects.get_or_create(
             email=user_mail,
-            defaults={"is_active": True, "is_staff": False, "is_superuser": False},
+            defaults={
+                "first_name": first_name,
+                "last_name": last_name,
+                "is_active": True,
+                "is_staff": False,
+                "is_superuser": False,
+            },
         )
+
+        # Add sub to user when created
+        if created:
+            user.store_value_in_metadata({sub: sub})
 
         print(user)
         return user
