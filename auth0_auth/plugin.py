@@ -35,31 +35,37 @@ class Auth0AuthPlugin(BasePlugin):
     CONFIG_STRUCTURE = {
         "domain": {
             "type": ConfigurationTypeField.STRING,
-            "help_text": ("Your Auth0 domain. E.g. {name}.{region}.auth0.com"),
+            "help_text": (
+                "Your Auth0 domain. E.g. {name}.{region}.auth0.com. You can find it Applications > Applications > {APP} > Settings > Domain"
+            ),
             "label": "Domain",
         },
         "client_id": {
             "type": ConfigurationTypeField.STRING,
             "help_text": (
-                "Your Client ID required to authenticate on the provider side."
+                "Your Auth0 Client ID. You can find it Applications > Applications > {APP} > Settings > Client ID"
             ),
             "label": "Client ID",
         },
         "client_secret": {
             "type": ConfigurationTypeField.SECRET,
             "help_text": (
-                "Your client secret required to authenticate on provider side."
+                "Your Auth0 client secret. You can find it Applications > Applications > {APP} > Settings > Client Secret"
             ),
             "label": "Client Secret",
         },
         "audience": {
             "type": ConfigurationTypeField.STRING,
-            "help_text": ("The audience of the api."),
+            "help_text": (
+                "The audience of the api configured in Auth0. Applications > APIs > {API} > Settings > Identifier"
+            ),
             "label": "Audience",
         },
         "namespace": {
             "type": ConfigurationTypeField.STRING,
-            "help_text": ("The namespace for custom token claims."),
+            "help_text": (
+                "The namespace for custom token claims. Actions > Library > Custom > {Action}"
+            ),
             "label": "Namespace",
         },
         "json_web_key_set_url": {
@@ -67,7 +73,7 @@ class Auth0AuthPlugin(BasePlugin):
             "help_text": (
                 "The JSON Web Key Set (JWKS) is a set of keys containing the public "
                 "keys used to verify any JSON Web Token (JWT) issued by the "
-                "authorization server and signed using the RS256 signing algorithm."
+                "authorization server and signed using the RS256 signing algorithm. This should be: https://{domain}/.well-known/jwks.json"
             ),
             "label": "JSON Web Key Set URL",
         },
@@ -121,22 +127,6 @@ class Auth0AuthPlugin(BasePlugin):
         user_mail, first_name, last_name = extract_user_details_from_token_payload(
             payload=data, namespace=self.config.namespace
         )
-
-        # user_mail = (
-        #     data[f"{self.config.namespace}/email"]
-        #     if f"{self.config.namespace}/email" in data.keys()
-        #     else None
-        # )
-        # first_name = (
-        #     data[f"{self.config.namespace}/firstname"]
-        #     if f"{self.config.namespace}/firstname" in data.keys()
-        #     else None
-        # )
-        # last_name = (
-        #     data[f"{self.config.namespace}/lastname"]
-        #     if f"{self.config.namespace}/lastname" in data.keys()
-        #     else None
-        # )
 
         if not user_mail:
             user_mail, first_name, last_name = fetch_user_details_from_auth0(

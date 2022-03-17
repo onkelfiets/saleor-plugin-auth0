@@ -52,8 +52,6 @@ def fetch_user_details_from_auth0(token: str, domain: str):
         f"https://{domain}/userinfo", headers={"Authorization": f"Bearer {token}"}
     ).json()
 
-    # raise Exception(f"domain: {domain}, data: {data}, token: {token}")
-
     user_mail = data["email"] if "email" in data.keys() else None
     first_name = data[f"given_name"] if f"given_name" in data.keys() else None
     last_name = data[f"family_name"] if f"family_name" in data.keys() else None
