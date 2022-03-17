@@ -1,4 +1,5 @@
 from typing import Optional
+import requests
 from django.core.handlers.wsgi import WSGIRequest
 
 
@@ -25,3 +26,30 @@ def get_token_auth_header(request: WSGIRequest) -> Optional[str]:
 
     token = header_parts[1]
     return token
+
+
+def extract_user_details_from_token_payload(payload: any, namespace: str):
+    data = payload
+    user_mail = (
+        data[f"{namespace}/email"] if f"{namespace}/email" in data.keys() else None
+    )
+    first_name = (
+        data[f"{namespace}/firstname"]
+        if f"{namespace}/firstname" in data.keys()
+        else None
+    )
+    last_name = (
+        data[f"{namespace}/lastname"]
+        if f"{namespace}/lastname" in data.keys()
+        else None
+    )
+
+    return user_mail, first_name, last_name
+
+
+def fetch_user_details_from_auth0(token: str, domain: str):
+    data = requests.get(
+        f"https://{domain}/userinfo", headers={"Authorization": f"Bearer {token}"}
+    ).json()
+
+    return data.email, data.given_name, data.family_name

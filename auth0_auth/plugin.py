@@ -12,7 +12,11 @@ from jwt import PyJWKClient
 
 
 from .dataclasses import Auth0AuthConfig
-from .util import get_token_auth_header
+from .util import (
+    extract_user_details_from_token_payload,
+    fetch_user_details_from_auth0,
+    get_token_auth_header,
+)
 
 
 class Auth0AuthPlugin(BasePlugin):
@@ -31,7 +35,7 @@ class Auth0AuthPlugin(BasePlugin):
     CONFIG_STRUCTURE = {
         "domain": {
             "type": ConfigurationTypeField.STRING,
-            "help_text": ("Your Domain required to authenticate on the provider side."),
+            "help_text": ("Your Auth0 domain. E.g. {name}.{region}.auth0.com"),
             "label": "Domain",
         },
         "client_id": {
@@ -113,25 +117,31 @@ class Auth0AuthPlugin(BasePlugin):
         if not data:
             raise Exception(f"Cannot Decode data: {data}")
 
-        # Pick user details.
-        user_mail = (
-            data[f"{self.config.namespace}/email"]
-            if f"{self.config.namespace}/email" in data.keys()
-            else None
-        )
-        first_name = (
-            data[f"{self.config.namespace}/firstname"]
-            if f"{self.config.namespace}/firstname" in data.keys()
-            else None
-        )
-        last_name = (
-            data[f"{self.config.namespace}/lastname"]
-            if f"{self.config.namespace}/lastname" in data.keys()
-            else None
+        # Extract user details
+        user_mail, first_name, last_name = extract_user_details_from_token_payload(
+            payload=data, namespace=self.config.namespace
         )
 
+        # user_mail = (
+        #     data[f"{self.config.namespace}/email"]
+        #     if f"{self.config.namespace}/email" in data.keys()
+        #     else None
+        # )
+        # first_name = (
+        #     data[f"{self.config.namespace}/firstname"]
+        #     if f"{self.config.namespace}/firstname" in data.keys()
+        #     else None
+        # )
+        # last_name = (
+        #     data[f"{self.config.namespace}/lastname"]
+        #     if f"{self.config.namespace}/lastname" in data.keys()
+        #     else None
+        # )
+
         if not user_mail:
-            raise Exception(f"No email found: {data}")
+            user_mail, first_name, last_name = fetch_user_details_from_auth0(
+                token=token, domain=self.config.domain
+            )
 
         # get or create user.
         user, created = User.objects.get_or_create(
