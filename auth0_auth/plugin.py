@@ -97,59 +97,64 @@ class Auth0AuthPlugin(BasePlugin):
             return previous_value
 
         print(request)
-        token = get_token_auth_header(request)
-        if not token:
-            raise Exception(f"No token found: {request}")
 
         try:
+            token = get_token_auth_header(request)
+            if not token:
+                raise Exception(f"No token found: {request}")
 
-            jwks_client = PyJWKClient(self.config.json_web_key_set_url)
-            signing_key = jwks_client.get_signing_key_from_jwt(token)
+            try:
 
-        except Exception as e:
-            print(e)
-            raise Exception(f"Token: {token} --- {e}")
+                jwks_client = PyJWKClient(self.config.json_web_key_set_url)
+                signing_key = jwks_client.get_signing_key_from_jwt(token)
 
-        if not signing_key:
-            raise Exception(f"No signing key found: {token}")
+            except Exception as e:
+                print(e)
+                raise Exception(f"Token: {token} --- {e}")
 
-        data = jwt.decode(
-            token,
-            signing_key.key,
-            algorithms=["RS256"],
-            audience=self.config.audience,
-        )
+            if not signing_key:
+                raise Exception(f"No signing key found: {token}")
 
-        if not data:
-            raise Exception(f"Cannot Decode data: {data}")
-
-        # Extract user details
-        user_mail, first_name, last_name = extract_user_details_from_token_payload(
-            payload=data, namespace=self.config.namespace
-        )
-
-        if not user_mail:
-            user_mail, first_name, last_name = fetch_user_details_from_auth0(
-                token=token, domain=self.config.domain
+            data = jwt.decode(
+                token,
+                signing_key.key,
+                algorithms=["RS256"],
+                audience=self.config.audience,
             )
 
-        # get or create user.
-        user, created = User.objects.get_or_create(
-            email=user_mail,
-            defaults={
-                "first_name": first_name if first_name else "",
-                "last_name": last_name if last_name else "",
-                "is_active": True,
-                "is_staff": False,
-                "is_superuser": False,
-            },
-        )
+            if not data:
+                raise Exception(f"Cannot Decode data: {data}")
 
-        # Add sub to user when created
-        if created:
-            sub = data["sub"]
-            user.store_value_in_metadata({"sub": sub})
-            user.save()
+            # Extract user details
+            user_mail, first_name, last_name = extract_user_details_from_token_payload(
+                payload=data, namespace=self.config.namespace
+            )
 
-        print(user)
-        return user
+            if not user_mail:
+                user_mail, first_name, last_name = fetch_user_details_from_auth0(
+                    token=token, domain=self.config.domain
+                )
+
+            # get or create user.
+            user, created = User.objects.get_or_create(
+                email=user_mail,
+                defaults={
+                    "first_name": first_name if first_name else "",
+                    "last_name": last_name if last_name else "",
+                    "is_active": True,
+                    "is_staff": False,
+                    "is_superuser": False,
+                },
+            )
+
+            # Add sub to user when created
+            if created:
+                sub = data["sub"]
+                user.store_value_in_metadata({"sub": sub})
+                user.save()
+
+            print(user)
+            return user
+
+        except Exception as e:
+            return previous_value
