@@ -1,3 +1,6 @@
+## This repository is deprecated
+Saleor introduced the openid plugin for the public repository, therefore this plugin is deprecated. Please have a look at the official plugin which was introduced with version [3.2.0](https://github.com/saleor/saleor/releases/tag/3.2.0)
+
 # saleor-plugin-auth0
 
 A simple plugin to use auth0 authentication.
